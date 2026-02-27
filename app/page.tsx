@@ -6,7 +6,7 @@ export default function Home() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-linear-to-br from-blue-50 to-indigo-100">
       <div className="text-center space-y-8 p-8">
         <h1 className="text-5xl font-bold text-gray-800 mb-4">
-          Welcome to MOE Admin
+          Welcome to MOE System 
         </h1>
         <p className="text-xl text-gray-600 mb-12">
           Choose your destination
