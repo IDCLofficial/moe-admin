@@ -11,17 +11,23 @@ interface DashboardLayoutProps {
   children: React.ReactNode
 }
 
-const navigationItems = [
-  { name: 'BECE', href: '/exam-portal' },
-  { name: 'Schools', href: '/admin/schools' },
-  { name: 'WAEC', href: '/admin/waec' },
-  { name: 'BECE', href: '/admin/bece' },
-  { name: 'BECE RESIT', href: '/admin/bece-resit' },
-  { name: 'JSCBE', href: '/admin/jscbe' },
-  { name: 'COMMON ENTRANCE', href: '/admin/common-entrance' },
-  { name: 'UBEAT', href: '/admin/ubeat' },
-  { name: 'UBEGPT', href: '/admin/ubegpt' },
-  { name: 'UBETMS', href: '/admin/ubetms' },
+interface NavigationItem {
+  id: string
+  name: string
+  href: string
+}
+
+const navigationItems: NavigationItem[] = [
+  { id: 'bece-portal', name: 'BECE', href: '/exam-portal' },
+  { id: 'schools', name: 'Schools', href: '/admin/schools' },
+  { id: 'waec', name: 'WAEC', href: '/admin/waec' },
+  { id: 'bece', name: 'BECE', href: '/admin/bece' },
+  { id: 'bece-resit', name: 'BECE RESIT', href: '/admin/bece-resit' },
+  { id: 'jscbe', name: 'JSCBE', href: '/admin/jscbe' },
+  { id: 'common-entrance', name: 'COMMON ENTRANCE', href: '/admin/common-entrance' },
+  { id: 'ubeat', name: 'UBEAT', href: '/admin/ubeat' },
+  { id: 'ubegpt', name: 'UBEGPT', href: '/admin/ubegpt' },
+  { id: 'ubetms', name: 'UBETMS', href: '/admin/ubetms' },
 ]
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FaUserShield, FaWallet, FaCog } from "react-icons/fa";
 
 export default function Home() {
   return (
@@ -14,22 +15,26 @@ export default function Home() {
         <div className="flex flex-col sm:flex-row gap-6 justify-center">
           <Link 
             href="/admin"
-            className="px-8 py-4 bg-indigo-600 text-white rounded-lg font-semibold text-lg hover:bg-indigo-700 transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-1 duration-200"
+            className="flex flex-col items-center gap-4 px-12 py-8 bg-indigo-600 text-white rounded-lg font-semibold text-lg hover:bg-indigo-700 transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-1 duration-200"
           >
-            Admin Dashboard
+            <FaUserShield className="text-6xl" />
+            <span>Admin Dashboard</span>
           </Link>
           
           <Link 
             href="/wallet"
-            className="px-8 py-4 bg-emerald-600 text-white rounded-lg font-semibold text-lg hover:bg-emerald-700 transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-1 duration-200"
+            className="flex flex-col items-center gap-4 px-12 py-8 bg-emerald-600 text-white rounded-lg font-semibold text-lg hover:bg-emerald-700 transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-1 duration-200"
           >
-            Wallet
+            <FaWallet className="text-6xl" />
+            <span>Wallet</span>
           </Link>
-           <Link 
-            href="/wallet"
-            className="px-8 py-4 bg-emerald-600 text-white rounded-lg font-semibold text-lg hover:bg-emerald-700 transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-1 duration-200"
+          
+          <Link 
+            href="/system-admin"
+            className="flex flex-col items-center gap-4 px-12 py-8 bg-purple-600 text-white rounded-lg font-semibold text-lg hover:bg-purple-700 transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-1 duration-200"
           >
-          System Admin
+            <FaCog className="text-6xl" />
+            <span>System Admin</span>
           </Link>
         </div>
       </div>

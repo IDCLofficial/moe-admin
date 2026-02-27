@@ -27,56 +27,56 @@ interface NavItem {
 const navigationItems: NavItem[] = [
  
   { 
-    id: '1',
+    id: 'waec',
     name: 'WAEC', 
     href: '/admin/schools', 
     icon: FaGraduationCap,
     description: 'West African Examinations Council'
   },
   { 
-    id: '2',
+    id: 'bece',
     name: 'BECE', 
     href: '/admin/bece', 
     icon: FaClipboardList,
     description: 'Basic Education Certificate Examination'
   },
   { 
-    id: '3',
+    id: 'bece-resit',
     name: 'BECE RESIT', 
     href: '/admin/bece-resit', 
     icon: FaFileAlt,
     description: 'BECE Resit Examinations'
   },
   { 
-    id: '4',
+    id: 'jscbe',
     name: 'JSCBE', 
     href: '/admin/jscbe', 
     icon: FaPencilAlt,
     description: 'Junior Secondary Certificate Basic Education'
   },
   { 
-    id: '5',
+    id: 'common-entrance',
     name: 'COMMON ENTRANCE', 
     href: '/admin/common-entrance', 
     icon: FaBook,
     description: 'Common Entrance Examination'
   },
   { 
-    id: '6',
+    id: 'ubeat',
     name: 'UBEAT', 
     href: '/admin/ubeat', 
     icon: FaChartBar,
     description: 'Universal Basic Education Achievement Test'
   },
   { 
-    id: '7',
+    id: 'ubegpt',
     name: 'UBEGPT', 
     href: '/admin/ubegpt', 
     icon: FaUserGraduate,
     description: 'UBE General Proficiency Test'
   },
   { 
-    id: '8',
+    id: 'ubetms',
     name: 'UBETMS', 
     href: '/admin/ubetms', 
     icon: FaClipboardList,
