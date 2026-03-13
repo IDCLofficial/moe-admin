@@ -12,27 +12,27 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { isAuthenticated, loading, isTokenLoaded } = useAuth();
   const router = useRouter();
   const [isValidAdmin, setIsValidAdmin] = useState<boolean | null>(null);
-
-  // Check adminType from localStorage
+  
   useEffect(() => {
     if (!isTokenLoaded) return;
     
     const adminUserStr = localStorage.getItem('admin_user');
+   
     if (adminUserStr) {
       try {
         const adminUser = JSON.parse(adminUserStr);
-        if (adminUser.adminType !== 'admin') {
-          // Invalid admin type - clear storage and redirect
+        console.log("adminuser", adminUser)
+        if (adminUser.adminType !== 'system_admin') {
           localStorage.removeItem('admin_token');
           localStorage.removeItem('admin_email');
           localStorage.removeItem('admin_user');
-          
+
           Swal.fire({
             title: 'Access Denied',
             text: 'You do not have permission to access this area.',
             icon: 'error'
           }).then(() => {
-            router.push('/admin');
+            router.push('/systemadmin');
           });
           setIsValidAdmin(false);
           return;
@@ -41,7 +41,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
       } catch (error) {
         console.error('Error parsing admin user:', error);
         setIsValidAdmin(false);
-        router.push('/admin');
+        router.push('/systemadmin');
       }
     } else {
       setIsValidAdmin(false);
@@ -52,13 +52,12 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   useEffect(() => {
     if (!isTokenLoaded) return;
     if (!loading && !isAuthenticated) {
-      router.push('/admin');
+      router.push('/systemadmin');
     }
   }, [isAuthenticated, loading, router, isTokenLoaded]);
 
   if (!isTokenLoaded || isValidAdmin === null) return null;
 
-  // Block access if adminType is invalid
   if (isValidAdmin === false) {
     return null;
   }

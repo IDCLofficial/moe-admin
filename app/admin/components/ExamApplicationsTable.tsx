@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useGetApplicationsQuery } from '@/app/admin/schools/store/api/schoolsApi'
-import { Application } from '@/app/admin/schools/store/api/schoolsApi'
+import { useGetApplicationsQuery } from '@/app/admin/store/api/schoolsApi'
+import { Application } from '@/app/admin/store/api/schoolsApi'
 import { FaSearch, FaEye } from 'react-icons/fa'
 
 interface ExamApplicationsTableProps {

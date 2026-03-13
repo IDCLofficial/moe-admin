@@ -1,4 +1,4 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'                              
 import { School, Student } from '@/services/schoolService'
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL

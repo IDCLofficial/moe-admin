@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import { 
   useGetApplicationsQuery, 
   useUpdateApplicationStatusMutation
-} from '@/app/admin/schools/store/api/schoolsApi';
+} from '@/app/admin/store/api/schoolsApi';
 import { School } from "@/services/schoolService";
-import { Application } from "@/app/admin/schools/store/api/schoolsApi"
+import { Application } from "@/app/admin/store/api/schoolsApi"
 import { useSchoolStatusActions } from './SchoolStatusActions';
 import PaginationControls from './PaginationControls';
 import SchoolDataTable from './SchoolDataTable';

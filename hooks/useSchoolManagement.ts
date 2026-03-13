@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useUpdateApplicationStatusMutation } from '@/app/admin/schools/store/api/schoolsApi'
+import { useUpdateApplicationStatusMutation } from '@/app/admin/store/api/schoolsApi'
 import { useAuth } from '@/contexts/AuthContext'
 
 export function useSchoolManagement() {

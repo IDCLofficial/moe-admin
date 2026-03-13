@@ -4,7 +4,7 @@ import ExamStatsCards from '@/app/admin/schools/components/schools/ExamStatsCard
 import NotificationBanner from '@/app/admin/schools/components/NotificationBanner'
 import { useSchoolManagement } from '@/hooks/useSchoolManagement'
 import ExamSchoolTable from '@/app/admin/schools/components/schools/ExamSchoolTable'
-import { useGetApplicationsQuery } from '@/app/admin/schools/store/api/schoolsApi'
+import { useGetApplicationsQuery } from '@/app/admin/store/api/schoolsApi'
 import { FaSchool } from 'react-icons/fa'
 
 export default function AdminDashboard() {
@@ -16,7 +16,11 @@ export default function AdminDashboard() {
   const { data: applicationsResponse } = useGetApplicationsQuery({
     examType: 'WAEC',
     limit: 20
-  })
+  },
+
+ {
+  refetchOnMountOrArgChange: true
+})
 
   const applications = applicationsResponse?.data || []
   const totalStudents = applications.reduce((sum, app) => sum + app.numberOfStudents, 0)

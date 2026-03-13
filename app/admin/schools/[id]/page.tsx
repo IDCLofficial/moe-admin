@@ -4,9 +4,9 @@ import {
   useGetSchoolByIdQuery, 
   useGetSchoolTransactionsQuery,
   useGetApplicationsBySchoolIdQuery
-} from "@/app/admin/schools/store/api/schoolsApi";
+} from "@/app/admin/store/api/schoolsApi";
 import { useSchoolStatusActions } from '@/app/admin/schools/components/schools/SchoolStatusActions';
-import { Application } from '@/app/admin/schools/store/api/schoolsApi';
+import { Application } from '@/app/admin/store/api/schoolsApi';
 import SchoolDetailsHeader from '@/app/admin/schools/components/schools/SchoolDetailsHeader';
 import { AuthProvider } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/app/admin/schools/components/ProtectedRoute';

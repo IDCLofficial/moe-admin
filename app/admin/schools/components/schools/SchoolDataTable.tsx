@@ -1,4 +1,4 @@
-import { Application } from "@/app/admin/schools/store/api/schoolsApi";
+import { Application } from "@/app/admin/store/api/schoolsApi";
 import { School } from "@/services/schoolService";
 
 interface SchoolDataTableProps {

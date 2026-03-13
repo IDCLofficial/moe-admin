@@ -3,8 +3,7 @@
 import { FaCertificate, FaPencilAlt } from 'react-icons/fa'
 import ExamSchoolTable from '../schools/components/schools/ExamSchoolTable'
 import ExamStatsCards from '../schools/components/schools/ExamStatsCards'
-import { useGetApplicationsQuery } from '@/app/admin/schools/store/api/schoolsApi'
-
+import { useGetApplicationsQuery } from '@/app/admin/store/api/schoolsApi'
 export default function JscbePage() {
   const { data: applicationsResponse } = useGetApplicationsQuery({
     examType: 'JSCBE',

@@ -21,16 +21,10 @@ export default function Home() {
             <span>Admin Dashboard</span>
           </Link>
           
-          <Link 
-            href="/wallet"
-            className="flex flex-col items-center gap-4 px-12 py-8 bg-emerald-600 text-white rounded-lg font-semibold text-lg hover:bg-emerald-700 transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-1 duration-200"
-          >
-            <FaWallet className="text-6xl" />
-            <span>Wallet</span>
-          </Link>
+         
           
           <Link 
-            href="/system-admin"
+            href="/systemadmin"
             className="flex flex-col items-center gap-4 px-12 py-8 bg-purple-600 text-white rounded-lg font-semibold text-lg hover:bg-purple-700 transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-1 duration-200"
           >
             <FaCog className="text-6xl" />

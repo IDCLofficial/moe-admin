@@ -1,8 +1,8 @@
 "use client";
 import Swal from 'sweetalert2';
-import { useReapproveApplicationMutation, useUpdateApplicationStatusMutation } from '@/app/admin/schools/store/api/schoolsApi';
+import { useReapproveApplicationMutation, useUpdateApplicationStatusMutation } from '@/app/admin/store/api/schoolsApi';
 
-import { Application } from '../../store/api/schoolsApi';
+import { Application } from '../../../store/api/schoolsApi';
 import { useAuth } from '@/contexts/AuthContext';
 
 type MutateFunction<T> = (updater?: (data: T[]) => T[], revalidate?: boolean) => void;

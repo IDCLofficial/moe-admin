@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import PaginationControls from './PaginationControls';
-import { useGetStudentsBySchoolIdQuery } from '@/app/admin/schools/store/api/schoolsApi';
+import { useGetStudentsBySchoolIdQuery } from '@/app/admin/store/api/schoolsApi';
 import { useStudentExport } from '@/hooks/useStudentExport';
 import { Student } from '@/services/schoolService';
 

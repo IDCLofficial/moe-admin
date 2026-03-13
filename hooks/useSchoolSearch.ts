@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useGetSchoolNamesQuery } from '@/app/admin/schools/store/api/schoolsApi';
+import { useGetSchoolNamesQuery } from '@/app/admin/store/api/schoolsApi';
 import { School } from '@/services/schoolService';
 
 export const useSchoolSearch = () => {
