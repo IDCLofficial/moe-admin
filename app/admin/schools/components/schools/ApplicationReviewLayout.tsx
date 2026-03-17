@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { Application } from '../../store/api/schoolsApi';
+import { Application } from '../../../store/api/schoolsApi';
 
 interface ApplicationReviewLayoutProps {
   application: Application;
