@@ -61,7 +61,6 @@ function SchoolDetailsPageContent() {
     onSuccess: () => {
       // RTK Query will automatically refetch due to cache invalidation
       // The cache invalidation tags ['Application', 'School'] will trigger refetch
-      console.log('Status change successful - RTK Query will automatically update the UI');
     }
   });
 
@@ -158,10 +157,6 @@ const applicationForReview: Application | null = hasApplication ? school : null;
 
   // Check if this is a pending or rejected application (show ApplicationReviewLayout)
   const showApplicationReview = applicationForReview?.applicationStatus === 'pending' || applicationForReview?.applicationStatus === 'rejected';
-  console.log('Show Application Review:', showApplicationReview);
-  console.log('Application For Review:', applicationForReview);
-  console.log('Application Status:', applicationForReview?.applicationStatus);
-  console.log('Has Application:', hasApplication);
 
   return (
     

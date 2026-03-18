@@ -1,8 +1,9 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'                              
 import { School, Student } from '@/services/schoolService'
+import { decryptApiResponseFrom, isApiResponseDecryptConfigured } from '@/lib/apiResponseFunnel';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
-console.log("BASE_URL", BASE_URL)
+
 
 // Application interface
 export interface Application {
@@ -323,13 +324,26 @@ export const schoolsApi = createApi({
       }),
       invalidatesTags: ['Application', 'School'],
     }),
-
+// admin login
     adminLogin: builder.mutation<LoginResponse, LoginRequest>({
       query: (credentials) => ({
         url: '/admin/login',
         method: 'POST',
         body: credentials,
       }),
+      transformResponse: async (response: unknown) => {
+        const raw = response as { data?: unknown }
+        if (typeof raw?.data !== 'string') return response as LoginResponse
+        if (!(await isApiResponseDecryptConfigured())) return response as LoginResponse
+        try {
+          const transformedResponse = await decryptApiResponseFrom<LoginResponse>(raw as { data: string }, 'data')
+       
+          return transformedResponse
+        } catch (e) {
+          console.warn('apiResponseFunnel: decrypt failed, using raw response. Check API_RESPONSE_DECRYPT_SECRET and backend key/salt match.', e)
+          return response as LoginResponse
+        }
+      },
       invalidatesTags: ['Admin'],
     }),
   }),

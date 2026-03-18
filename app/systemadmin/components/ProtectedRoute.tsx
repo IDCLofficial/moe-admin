@@ -21,7 +21,6 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     if (adminUserStr) {
       try {
         const adminUser = JSON.parse(adminUserStr);
-        console.log("adminuser", adminUser)
         if (adminUser.adminType !== 'system_admin') {
           localStorage.removeItem('admin_token');
           localStorage.removeItem('admin_email');

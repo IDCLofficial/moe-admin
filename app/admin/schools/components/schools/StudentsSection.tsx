@@ -216,7 +216,6 @@ export default function StudentsSection({
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {paginatedStudents.map((student) => (
-                  console.log(student),
                   <tr key={student._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {student.studentId}
