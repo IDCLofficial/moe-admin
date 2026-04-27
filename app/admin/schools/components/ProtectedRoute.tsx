@@ -21,7 +21,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     if (adminUserStr) {
       try {
         const adminUser = JSON.parse(adminUserStr);
-        if (adminUser.adminType !== 'admin') {
+        if (adminUser.adminType !== 'exam_admin') {
           // Invalid admin type - clear storage and redirect
           localStorage.removeItem('admin_token');
           localStorage.removeItem('admin_email');

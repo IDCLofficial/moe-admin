@@ -102,7 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         const adminData = success.data.admin;
 
-        if (adminData.adminType !== 'admin') {
+        if (adminData.adminType !== 'exam_admin') {
 
           Swal.fire({
 

@@ -16,6 +16,7 @@ import {
   FaUsers,
 } from 'react-icons/fa';
 import { useGetAeeByIdQuery, useGetAeeListQuery } from '@/app/admin/store/api/systemApi';
+import { useRouter } from 'next/navigation';
 
 type AeeStatus = 'Active' | 'Inactive' | 'Pending' | 'Suspended' | 'Unknown';
 type StatusFilter = 'All' | AeeStatus;
@@ -28,6 +29,7 @@ interface AeeAccount {
   phone: string;
   role: string;
   status: AeeStatus;
+  lga: string;
   createdAt: string;
 }
 
@@ -37,6 +39,7 @@ interface AeeFormData {
   phone: string;
   role: string;
   status: AeeStatus;
+  lga: string;
 }
 
 const emptyFormData: AeeFormData = {
@@ -45,6 +48,7 @@ const emptyFormData: AeeFormData = {
   phone: '',
   role: 'AEE',
   status: 'Unknown',
+  lga: '',
 };
 
 function isRecord(value: unknown): value is UnknownRecord {
@@ -155,6 +159,7 @@ function normalizeAee(record: UnknownRecord, index: number, fallback?: AeeAccoun
     phone: getStringFromKeys(record, ['phone', 'phoneNumber', 'mobile', 'telephone']) || fallback?.phone || '',
     role: getStringFromKeys(record, ['role', 'accountType', 'userType']) || fallback?.role || 'AEE',
     status: normalizeStatus(record, fallback?.status ?? 'Unknown'),
+    lga: getStringFromKeys(record, ['lga', 'zone', 'location']) || fallback?.lga || '',
     createdAt: getStringFromKeys(record, ['createdAt', 'created_at', 'dateCreated', 'joinedAt']) || fallback?.createdAt || '',
   };
 }
@@ -234,6 +239,7 @@ function toFormData(account: AeeAccount): AeeFormData {
     phone: account.phone,
     role: account.role,
     status: account.status,
+    lga: account.lga,
   };
 }
 
@@ -309,6 +315,7 @@ function getStatusClasses(status: AeeStatus): string {
 }
 
 export default function AeePage() {
+  const router = useRouter();
   const { data: aeeListResponse, isLoading, isFetching, isError, error, refetch } = useGetAeeListQuery(undefined);
   const [selectedAeeId, setSelectedAeeId] = useState<string | null>(null);
   const [pendingDeleteAccount, setPendingDeleteAccount] = useState<AeeAccount | null>(null);
@@ -355,7 +362,8 @@ export default function AeePage() {
           account.fullName.toLowerCase().includes(query) ||
           account.email.toLowerCase().includes(query) ||
           account.phone.toLowerCase().includes(query) ||
-          account.role.toLowerCase().includes(query);
+          account.role.toLowerCase().includes(query) ||
+          account.lga.toLowerCase().includes(query);
 
         return matchesStatus && matchesQuery;
       })
@@ -447,7 +455,7 @@ export default function AeePage() {
               </span>
             </div>
           </div>
-
+{/* 
           <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -485,10 +493,10 @@ export default function AeePage() {
                 <FaUserShield />
               </span>
             </div>
-          </div>
+          </div> */}
         </section>
 
-<section className="grid gap-8 xl:grid-cols-[minmax(0,1.45fr)_minmax(0,0.95fr)]">
+<section className="">
   {/* LEFT COLUMN */}
   <div className="min-w-0 space-y-6">
     <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -545,7 +553,7 @@ export default function AeePage() {
                       <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Email</th>
                       <th className="hidden px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 lg:table-cell">Phone</th>
                       <th className="hidden px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 xl:table-cell">Role</th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Status</th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">LGA</th>
                       <th className="hidden px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 md:table-cell">Joined</th>
                       <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">Actions</th>
                     </tr>
@@ -599,19 +607,19 @@ export default function AeePage() {
                           <td className="hidden px-6 py-4 text-sm text-slate-600 xl:table-cell">{account.role}</td>
                           <td className="px-6 py-4">
                             <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${getStatusClasses(account.status)}`}>
-                              {account.status}
+                              {account.lga}
                             </span>
                           </td>
-                          <td className="hidden px-6 py-4 text-sm text-slate-600 md:table-cell">{formatDate(account.createdAt)}</td>
+                          <td className="hidden px-4 py-4 text-sm text-slate-600 md:table-cell">{formatDate(account.createdAt)}</td>
                           <td className="px-6 py-4">
-                            <div className="flex items-center justify-end gap-2">
+                            <div className="flex items-center justify-end gap-1">
                               <button
                                 type="button"
-                                onClick={() => setSelectedAeeId(account.id)}
-                                className="inline-flex items-center gap-2 rounded-2xl border border-emerald-200 px-3 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-50"
+                                onClick={() => router.push(`/systemadmin/aee/${account.id}/logs`)}
+                                className="inline-flex items-center gap-2 rounded-2xl border border-emerald-200 p-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-50"
                               >
                                 <FaEdit className="text-xs" />
-                                Edit
+                                View Logs
                               </button>
                               <button
                                 type="button"
@@ -632,7 +640,7 @@ export default function AeePage() {
             </div>
           </div>
 
-          <div className="xl:sticky xl:top-24">
+          {/* <div className="xl:sticky xl:top-24">
             <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
               <div className="border-b border-slate-200 px-6 py-5">
                 <p className="text-sm font-semibold text-emerald-600">
@@ -705,6 +713,13 @@ export default function AeePage() {
                       <div className="mt-2 flex items-center gap-2 text-sm font-medium text-slate-900">
                         <FaPhoneAlt className="text-slate-400" />
                         <span>{selectedAccount.phone || 'Not available'}</span>
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl bg-slate-50 p-4">
+                      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">LGA</p>
+                      <div className="mt-2 text-sm font-semibold text-slate-900">
+                        {selectedAccount.lga || 'Not available'}
                       </div>
                     </div>
                   </div>
@@ -808,7 +823,7 @@ export default function AeePage() {
                 </div>
               )}
             </div>
-          </div>
+          </div> */}
         </section>
 
         {pendingDeleteAccount ? (

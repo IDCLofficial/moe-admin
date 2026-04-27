@@ -1,5 +1,49 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 // rtk query api slice
+
+export interface School {
+  id: string;
+  name: string;
+  code: string;
+}
+
+export interface Application {
+  _id: string;
+  examType: string;
+  schoolName: string;
+  address: string;
+  schoolCode: string;
+  principal: string;
+  email: string;
+  phone: number;
+  numberOfStudents: number;
+  applicationStatus: string;
+  reviewedAt?: string;
+  school: {
+    _id: string;
+    schoolName: string;
+    address: string;
+    lga: string;
+    email?: string;
+    phone?: string;
+    principal?: string;
+    schoolCode?: string;
+  };
+}
+
+export interface SchoolApplications {
+  school: School;
+  applications: Application[];
+}
+
+export interface AeeApplicationsResponse {
+  aeeId: string;
+  examType: string;
+  examYear: string;
+  totalSchools: number;
+  data: SchoolApplications[];
+}
+
 interface CreateExamRequest {
   examName: string;
   fee: number;
@@ -40,6 +84,12 @@ export const systemApi = createApi({
         body: exam,
       }),
     }),
+    // fetch exam schedules
+    examSchedule: builder.query<unknown, void>(
+      {
+        query: () => '/exams/schedules' 
+      }
+    ),
     // delete exam
     deleteExam: builder.mutation({
       query: (examId) => ({
@@ -78,6 +128,18 @@ export const systemApi = createApi({
         method: 'DELETE',
       }),
     }),
+    // get aee applications (activity logs)
+    getAeeOnboardedStudents: builder.query<AeeApplicationsResponse, { id: string; examType?: string; examYear?: string }>({
+      query: ({ id, examType, examYear }) => {
+        const params = new URLSearchParams();
+        if (examType) params.append('examType', examType);
+        if (examYear) params.append('examYear', examYear);
+        return {
+          url: `/aee/${id}/applications`,
+          params: params || undefined,
+        };
+      },
+    }),
     // get all transactions
     getTransactions: builder.query<unknown, void>({
       query: () => '/admin/transactions',
@@ -93,4 +155,4 @@ export const systemApi = createApi({
   }),
 });
  
-export const { useGetAllexamsQuery, useCreateExamMutation, useDeleteExamMutation, useGetAeeListQuery, useGetAeeByIdQuery, useGetTransactionsQuery, useSetScheduleMutation } = systemApi;
+export const { useGetAllexamsQuery, useExamScheduleQuery, useCreateExamMutation, useDeleteExamMutation, useSetExamFeeMutation, useGetAeeListQuery, useGetAeeByIdQuery, useGetAeeOnboardedStudentsQuery, useGetTransactionsQuery, useSetScheduleMutation } = systemApi;

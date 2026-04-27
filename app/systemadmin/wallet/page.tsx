@@ -134,16 +134,18 @@ function getCandidateProfile(record: UnknownRecord): Pick<RegistrationTransactio
   const nestedCandidateRecord =
     getRecordFromKeys(record, ['candidate', 'student', 'user', 'payer']) ??
     (registrationRecord ? getRecordFromKeys(registrationRecord, ['candidate', 'student', 'user', 'payer']) : null);
+  const schoolRecord = getRecordFromKeys(record, ['school']);
 
   const candidateName =
     getStringFromKeys(record, ['candidateName', 'studentName', 'fullName', 'name', 'payerName']) ||
     (nestedCandidateRecord
       ? getStringFromKeys(nestedCandidateRecord, ['fullName', 'name', 'displayName', 'username']) || composeName(nestedCandidateRecord)
       : '') ||
+    getStringFromKeys(schoolRecord ?? {}, ['schoolName', 'name']) ||
     composeName(record) ||
     'Unknown candidate';
 
-  const profileSource = nestedCandidateRecord ?? registrationRecord;
+  const profileSource = nestedCandidateRecord ?? registrationRecord ?? schoolRecord;
   const email =
     getStringFromKeys(record, ['email', 'emailAddress', 'candidateEmail', 'payerEmail']) ||
     (profileSource ? getStringFromKeys(profileSource, ['email', 'emailAddress', 'mail']) : '');
@@ -159,7 +161,7 @@ function getCandidateProfile(record: UnknownRecord): Pick<RegistrationTransactio
 }
 
 function getExamName(record: UnknownRecord): string {
-  const directExamName = getStringFromKeys(record, ['examName', 'examTitle', 'exam', 'title', 'registrationType']);
+  const directExamName = getStringFromKeys(record, ['examType', 'examName', 'examTitle', 'exam', 'title', 'registrationType']);
 
   if (directExamName) {
     return directExamName;
@@ -225,16 +227,46 @@ function normalizeStatus(record: UnknownRecord): TransactionStatus {
 
 function normalizeTransaction(record: UnknownRecord, index: number): RegistrationTransaction {
   const paymentRecord = getRecordFromKeys(record, ['payment', 'transaction']);
+  const paystackRecord = getRecordFromKeys(record, ['paystackResponse']);
+  const paystackMetadata = paystackRecord ? getRecordFromKeys(paystackRecord, ['metadata']) : null;
   const candidateProfile = getCandidateProfile(record);
   const examName = getExamName(record);
   const reference =
     getStringFromKeys(record, ['reference', 'transactionReference', 'paymentReference', 'tx_ref', 'orderId']) ||
-    (paymentRecord
-      ? getStringFromKeys(paymentRecord, ['reference', 'transactionReference', 'paymentReference', 'tx_ref', 'orderId'])
-      : '');
+    (paymentRecord ? getStringFromKeys(paymentRecord, ['reference', 'transactionReference', 'paymentReference', 'tx_ref', 'orderId']) : '');
+
   const currency =
     getStringFromKeys(record, ['currency', 'currencyCode']) ||
+    (paystackRecord ? getStringFromKeys(paystackRecord, ['currency']) : '') ||
     (paymentRecord ? getStringFromKeys(paymentRecord, ['currency', 'currencyCode']) : '');
+
+  const amount =
+    getNumberFromKeys(record, ['totalAmount', 'amountPerStudent', 'amount', 'fee', 'paidAmount', 'total', 'value']) ||
+    (paystackRecord ? getNumberFromKeys(paystackRecord, ['amount']) : 0) ||
+    (paymentRecord ? getNumberFromKeys(paymentRecord, ['amount', 'fee', 'paidAmount', 'total', 'value']) : 0);
+
+  const paymentMethod =
+    getStringFromKeys(record, ['paymentMethod', 'method', 'provider']) ||
+    (paystackRecord ? getStringFromKeys(paystackRecord, ['channel']) : '') ||
+    (paymentRecord ? getStringFromKeys(paymentRecord, ['paymentMethod', 'method', 'provider']) : '') ||
+    'Not specified';
+
+  const channel =
+    getStringFromKeys(record, ['channel', 'paymentChannel']) ||
+    (paystackRecord ? getStringFromKeys(paystackRecord, ['channel']) : '') ||
+    (paymentRecord ? getStringFromKeys(paymentRecord, ['channel', 'paymentChannel']) : '') ||
+    'Not specified';
+
+  const createdAt =
+    getStringFromKeys(record, ['createdAt', 'paymentDate', 'transactionDate', 'date', 'created_at', 'updatedAt']) ||
+    getStringFromKeys(record, ['paidAt']) ||
+    (paystackRecord ? getStringFromKeys(paystackRecord, ['paidAt', 'createdAt', 'transaction_date']) : '') ||
+    (paymentRecord ? getStringFromKeys(paymentRecord, ['createdAt', 'paymentDate', 'transactionDate', 'date', 'created_at']) : '');
+
+  const description =
+    getStringFromKeys(record, ['description', 'narration', 'note', 'remarks']) ||
+    (paystackMetadata ? getStringFromKeys(paystackMetadata, ['notes']) : '') ||
+    (paymentRecord ? getStringFromKeys(paymentRecord, ['description', 'narration', 'note', 'remarks']) : '');
 
   return {
     id: getStringFromKeys(record, ['_id', 'id', 'transactionId']) || reference || `transaction-${index + 1}`,
@@ -243,27 +275,13 @@ function normalizeTransaction(record: UnknownRecord, index: number): Registratio
     email: candidateProfile.email,
     phone: candidateProfile.phone,
     examName: examName || 'Registration payment',
-    amount:
-      getNumberFromKeys(record, ['amount', 'fee', 'paidAmount', 'total', 'value']) ||
-      (paymentRecord ? getNumberFromKeys(paymentRecord, ['amount', 'fee', 'paidAmount', 'total', 'value']) : 0),
+    amount,
     currency,
     status: normalizeStatus(record),
-    paymentMethod:
-      getStringFromKeys(record, ['paymentMethod', 'method', 'provider']) ||
-      (paymentRecord ? getStringFromKeys(paymentRecord, ['paymentMethod', 'method', 'provider']) : '') ||
-      'Not specified',
-    channel:
-      getStringFromKeys(record, ['channel', 'paymentChannel']) ||
-      (paymentRecord ? getStringFromKeys(paymentRecord, ['channel', 'paymentChannel']) : '') ||
-      'Not specified',
-    createdAt:
-      getStringFromKeys(record, ['createdAt', 'paymentDate', 'transactionDate', 'date', 'created_at', 'updatedAt']) ||
-      (paymentRecord
-        ? getStringFromKeys(paymentRecord, ['createdAt', 'paymentDate', 'transactionDate', 'date', 'created_at'])
-        : ''),
-    description:
-      getStringFromKeys(record, ['description', 'narration', 'note', 'remarks']) ||
-      (paymentRecord ? getStringFromKeys(paymentRecord, ['description', 'narration', 'note', 'remarks']) : ''),
+    paymentMethod,
+    channel,
+    createdAt,
+    description,
   };
 }
 
@@ -305,6 +323,36 @@ function extractTransactionRecords(response: unknown): unknown[] {
   }
 
   return [];
+}
+
+function getApiSummary(response: unknown): {
+  totalTransactions?: number;
+  totalRevenue?: number;
+  successful?: number;
+  pending?: number;
+  failed?: number;
+  cancelled?: number;
+} | null {
+  if (!isRecord(response)) {
+    return null;
+  }
+
+  const apiSummary =
+    getRecordFromKeys(response, ['summary']) ||
+    (isRecord(response.data) ? getRecordFromKeys(response.data as UnknownRecord, ['summary']) : null);
+
+  if (!apiSummary) {
+    return null;
+  }
+
+  return {
+    totalTransactions: getNumberFromKeys(apiSummary, ['totalTransactions', 'total']),
+    totalRevenue: getNumberFromKeys(apiSummary, ['totalRevenue', 'revenue', 'collected']),
+    successful: getNumberFromKeys(apiSummary, ['successful']),
+    pending: getNumberFromKeys(apiSummary, ['pending']),
+    failed: getNumberFromKeys(apiSummary, ['failed']),
+    cancelled: getNumberFromKeys(apiSummary, ['cancelled']),
+  };
 }
 
 function extractTransactions(response: unknown): RegistrationTransaction[] {
@@ -469,6 +517,7 @@ export default function WalletPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('All');
   const [selectedTransactionId, setSelectedTransactionId] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const transactions = useMemo(() => extractTransactions(transactionsResponse), [transactionsResponse]);
   const filteredTransactions = useMemo(() => {
@@ -516,8 +565,25 @@ export default function WalletPage() {
     return currencies.length === 1 ? currencies[0] : '';
   }, [transactions]);
 
-  const summary = useMemo(
-    () => ({
+  const apiSummary = useMemo(() => getApiSummary(transactionsResponse), [transactionsResponse]);
+
+  const summary = useMemo(() => {
+    if (apiSummary) {
+      const failedOrCancelled = (apiSummary.failed ?? 0) + (apiSummary.cancelled ?? 0);
+
+      return {
+        total: apiSummary.totalTransactions ?? transactions.length,
+        successful: apiSummary.successful ?? transactions.filter((transaction) => transaction.status === 'Successful').length,
+        pending: apiSummary.pending ?? transactions.filter((transaction) => transaction.status === 'Pending').length,
+        failedOrRefunded: failedOrCancelled ||
+          transactions.filter((transaction) => ['Failed', 'Refunded', 'Unknown'].includes(transaction.status)).length,
+        collected: apiSummary.totalRevenue ?? transactions
+          .filter((transaction) => transaction.status === 'Successful')
+          .reduce((runningTotal, transaction) => runningTotal + transaction.amount, 0),
+      };
+    }
+
+    return {
       total: transactions.length,
       successful: transactions.filter((transaction) => transaction.status === 'Successful').length,
       pending: transactions.filter((transaction) => transaction.status === 'Pending').length,
@@ -525,9 +591,8 @@ export default function WalletPage() {
       collected: transactions
         .filter((transaction) => transaction.status === 'Successful')
         .reduce((runningTotal, transaction) => runningTotal + transaction.amount, 0),
-    }),
-    [transactions],
-  );
+    };
+  }, [transactions, apiSummary]);
 
   const queryErrorMessage = isError ? getErrorMessage(error) : null;
 
@@ -620,8 +685,8 @@ export default function WalletPage() {
           </div>
         </section>
 
-        <section className="grid gap-8 xl:grid-cols-[1.45fr_0.95fr]">
-          <div className="space-y-6">
+        <section className="grid gap-8 xl:grid-cols-1 xl:min-h-[calc(100vh-16rem)]">
+          <div className="space-y-6 min-h-0 overflow-hidden">
             <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
@@ -738,7 +803,7 @@ export default function WalletPage() {
                             <div>
                               <p className="text-sm font-semibold text-slate-900">{transaction.reference}</p>
                               <p className="mt-1 text-xs text-slate-500">
-                                {transaction.paymentMethod} via {transaction.channel}
+                                {transaction.paymentMethod} 
                               </p>
                             </div>
                           </td>
@@ -759,7 +824,10 @@ export default function WalletPage() {
                           <td className="px-6 py-4 text-right">
                             <button
                               type="button"
-                              onClick={() => setSelectedTransactionId(transaction.id)}
+                              onClick={() => {
+                                setSelectedTransactionId(transaction.id);
+                                setIsModalOpen(true);
+                              }}
                               className="inline-flex items-center gap-2 rounded-2xl border border-emerald-200 px-3 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-50"
                             >
                               View
@@ -773,123 +841,114 @@ export default function WalletPage() {
               </div>
             </div>
           </div>
+        </section>
 
-          <div className="xl:sticky xl:top-24">
-            <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-              <div className="border-b border-slate-200 px-6 py-5">
-                <p className="text-sm font-semibold text-emerald-600">Transaction workspace</p>
-                <h2 className="mt-1 text-2xl font-semibold text-slate-900">Payment details</h2>
-                <p className="mt-2 text-sm leading-6 text-slate-500">
-                  Open any row from the table to inspect the registration payment, candidate information, method, and current payment state.
-                </p>
+        {isModalOpen && selectedTransaction ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4">
+            <div className="w-full max-w-3xl overflow-hidden rounded-3xl bg-white shadow-2xl">
+              <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+                <div>
+                  <p className="text-sm font-semibold text-emerald-600">Transaction workspace</p>
+                  <h2 className="mt-1 text-xl font-semibold text-slate-900">Payment details</h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 hover:bg-slate-100"
+                >
+                  Close
+                </button>
               </div>
 
-              {!selectedTransaction ? (
-                <div className="space-y-4 p-6 text-center">
-                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-slate-100 text-slate-500">
-                    <FaMoneyBillWave className="text-xl" />
+              <div className="space-y-6 p-6 max-h-[78vh] overflow-y-auto">
+                <div className="rounded-3xl bg-slate-50 p-5">
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-medium text-slate-500">Reference</p>
+                      <h3 className="mt-2 text-xl font-semibold text-slate-900">{selectedTransaction.reference}</h3>
+                      <p className="mt-2 text-sm text-slate-500">{selectedTransaction.examName}</p>
+                    </div>
+                    <StatusBadge status={selectedTransaction.status} />
                   </div>
-                  <div className="space-y-2">
-                    <h3 className="text-lg font-semibold text-slate-900">Select a transaction</h3>
-                    <p className="text-sm text-slate-500">
-                      Pick any transaction from the table to review payment details and registration context from this wallet workspace.
+
+                  <div className="mt-5 rounded-2xl bg-white px-4 py-4 ring-1 ring-inset ring-slate-200">
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Amount</p>
+                    <p className="mt-2 text-3xl font-semibold text-slate-900">
+                      {formatAmount(selectedTransaction.amount, selectedTransaction.currency)}
                     </p>
                   </div>
                 </div>
-              ) : (
-                <div className="space-y-6 p-6">
-                  <div className="rounded-3xl bg-slate-50 p-5">
-                    <div className="flex flex-wrap items-start justify-between gap-4">
-                      <div>
-                        <p className="text-sm font-medium text-slate-500">Reference</p>
-                        <h3 className="mt-2 text-xl font-semibold text-slate-900">{selectedTransaction.reference}</h3>
-                        <p className="mt-2 text-sm text-slate-500">{selectedTransaction.examName}</p>
-                      </div>
 
-                      <StatusBadge status={selectedTransaction.status} />
-                    </div>
+                <div className="rounded-2xl bg-sky-50 px-4 py-3 text-sm font-medium text-sky-700 ring-1 ring-inset ring-sky-200">
+                  {getStatusDescription(selectedTransaction.status)}
+                </div>
 
-                    <div className="mt-5 rounded-2xl bg-white px-4 py-4 ring-1 ring-inset ring-slate-200">
-                      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Amount</p>
-                      <p className="mt-2 text-3xl font-semibold text-slate-900">
-                        {formatAmount(selectedTransaction.amount, selectedTransaction.currency)}
-                      </p>
-                    </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-2xl bg-slate-50 p-4">
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Payment method</p>
+                    <p className="mt-2 text-sm font-semibold text-slate-900">{selectedTransaction.paymentMethod}</p>
                   </div>
-
-                  <div className="rounded-2xl bg-sky-50 px-4 py-3 text-sm font-medium text-sky-700 ring-1 ring-inset ring-sky-200">
-                    {getStatusDescription(selectedTransaction.status)}
+                  <div className="rounded-2xl bg-slate-50 p-4">
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Channel</p>
+                    <p className="mt-2 text-sm font-semibold text-slate-900">{selectedTransaction.channel}</p>
                   </div>
+                  <div className="rounded-2xl bg-slate-50 p-4 sm:col-span-2">
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Processed at</p>
+                    <p className="mt-2 text-sm font-semibold text-slate-900">{formatDateTime(selectedTransaction.createdAt)}</p>
+                  </div>
+                </div>
 
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="rounded-2xl bg-slate-50 p-4">
-                      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Payment method</p>
-                      <p className="mt-2 text-sm font-semibold text-slate-900">{selectedTransaction.paymentMethod}</p>
+                <div className="rounded-3xl border border-slate-200 p-5">
+                  <h3 className="text-base font-semibold text-slate-900">Candidate information</h3>
+                  <div className="mt-4 space-y-3">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">{selectedTransaction.candidateName}</p>
+                      <p className="text-xs text-slate-500">Registration owner</p>
                     </div>
 
                     <div className="rounded-2xl bg-slate-50 p-4">
-                      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Channel</p>
-                      <p className="mt-2 text-sm font-semibold text-slate-900">{selectedTransaction.channel}</p>
-                    </div>
-
-                    <div className="rounded-2xl bg-slate-50 p-4 sm:col-span-2">
-                      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Processed at</p>
-                      <p className="mt-2 text-sm font-semibold text-slate-900">{formatDateTime(selectedTransaction.createdAt)}</p>
-                    </div>
-                  </div>
-
-                  <div className="rounded-3xl border border-slate-200 p-5">
-                    <h3 className="text-base font-semibold text-slate-900">Candidate information</h3>
-                    <div className="mt-4 space-y-3">
-                      <div>
-                        <p className="text-sm font-semibold text-slate-900">{selectedTransaction.candidateName}</p>
-                        <p className="text-xs text-slate-500">Registration owner</p>
-                      </div>
-
-                      <div className="rounded-2xl bg-slate-50 p-4">
-                        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Email</p>
-                        <div className="mt-2 flex items-center gap-2 text-sm font-medium text-slate-900">
-                          <FaEnvelope className="text-slate-400" />
-                          <span>{selectedTransaction.email || 'Not available'}</span>
-                        </div>
-                      </div>
-
-                      <div className="rounded-2xl bg-slate-50 p-4">
-                        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Phone</p>
-                        <div className="mt-2 flex items-center gap-2 text-sm font-medium text-slate-900">
-                          <FaPhoneAlt className="text-slate-400" />
-                          <span>{selectedTransaction.phone || 'Not available'}</span>
-                        </div>
+                      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Email</p>
+                      <div className="mt-2 flex items-center gap-2 text-sm font-medium text-slate-900">
+                        <FaEnvelope className="text-slate-400" />
+                        <span>{selectedTransaction.email || 'Not available'}</span>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="rounded-3xl border border-slate-200 p-5">
-                    <h3 className="text-base font-semibold text-slate-900">Wallet signals</h3>
-                    <div className="mt-4 grid gap-3">
-                      <div className="rounded-2xl bg-slate-50 p-4">
-                        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Pending payments</p>
-                        <p className="mt-2 text-2xl font-semibold text-slate-900">{summary.pending}</p>
-                      </div>
-
-                      <div className="rounded-2xl bg-slate-50 p-4">
-                        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Needs attention</p>
-                        <p className="mt-2 text-2xl font-semibold text-slate-900">{summary.failedOrRefunded}</p>
-                      </div>
-
-                      <div className="rounded-2xl bg-slate-50 p-4">
-                        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Description</p>
-                        <p className="mt-2 text-sm text-slate-700">
-                          {selectedTransaction.description || 'The backend did not provide an extra transaction description for this record.'}
-                        </p>
+                    <div className="rounded-2xl bg-slate-50 p-4">
+                      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Phone</p>
+                      <div className="mt-2 flex items-center gap-2 text-sm font-medium text-slate-900">
+                        <FaPhoneAlt className="text-slate-400" />
+                        <span>{selectedTransaction.phone || 'Not available'}</span>
                       </div>
                     </div>
                   </div>
                 </div>
-              )}
+
+                <div className="rounded-3xl border border-slate-200 p-5">
+                  <h3 className="text-base font-semibold text-slate-900">Wallet signals</h3>
+                  <div className="mt-4 grid gap-3">
+                    <div className="rounded-2xl bg-slate-50 p-4">
+                      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Pending payments</p>
+                      <p className="mt-2 text-2xl font-semibold text-slate-900">{summary.pending}</p>
+                    </div>
+
+                    <div className="rounded-2xl bg-slate-50 p-4">
+                      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Needs attention</p>
+                      <p className="mt-2 text-2xl font-semibold text-slate-900">{summary.failedOrRefunded}</p>
+                    </div>
+
+                    <div className="rounded-2xl bg-slate-50 p-4">
+                      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Description</p>
+                      <p className="mt-2 text-sm text-slate-700">
+                        {selectedTransaction.description || 'No extra transaction description for this record.'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </section>
+        ) : null}
       </div>
     </div>
   );
