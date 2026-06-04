@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FaUserShield, FaWallet, FaCog } from "react-icons/fa";
+import { FaUserShield, FaWallet, FaCog, FaHeadset } from "react-icons/fa";
 
 export default function Home() {
   return (
@@ -29,6 +29,15 @@ export default function Home() {
           >
             <FaCog className="text-6xl" />
             <span>System Admin</span>
+          </Link>
+
+          
+           <Link 
+            href="/customer-support"
+            className="flex flex-col items-center gap-2 p-8 bg-purple-600 text-white rounded-lg font-semibold text-lg hover:bg-purple-700 transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-1 duration-200"
+          >
+            <FaHeadset className="text-6xl" />
+            <span>Customer Support Dashboard</span>
           </Link>
         </div>
       </div>

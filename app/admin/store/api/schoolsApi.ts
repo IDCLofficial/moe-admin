@@ -137,7 +137,7 @@ export const schoolsApi = createApi({
       return headers
     },
   }),
-  tagTypes: ['School', 'Application', 'Transaction', 'Student', "Admin"],
+  tagTypes: ['School', 'Application', 'Transaction', 'Student', "Admin", "Complaint"],
   endpoints: (builder) => ({
     // Get all schools with pagination and filters
     getSchools: builder.query<PaginatedResponse<School>, {
@@ -346,8 +346,65 @@ export const schoolsApi = createApi({
       },
       invalidatesTags: ['Admin'],
     }),
+
+    // Get all complaints for customer support
+    getAllComplaints: builder.query<ComplaintsResponse, { page?: number; limit?: number; reasonForContact?: string }>({
+      query: ({ page = 1, limit = 10, reasonForContact } = {}) => {
+        const params = new URLSearchParams({
+          page: page.toString(),
+          limit: limit.toString(),
+        })
+        if (reasonForContact) {
+          params.append('reasonForContact', reasonForContact)
+        }
+        return `customer-support/all-complains?${params.toString()}`
+      },
+      providesTags: ['Complaint'],
+    }),
+
+    // Resolve complaint
+    resolveComplaint: builder.mutation<{ data: Complaint }, { reference: string }>({
+      query: ({ reference }) => ({
+        url: `complain/complains/${reference}/resolve`,
+        method: 'PATCH',
+        body: { resolved: true },
+      }),
+      invalidatesTags: ['Complaint'],
+    }),
   }),
 })
+
+// Complaint interface
+export interface Complaint {
+  _id: string;
+  fullName: string;
+  reference: string;
+  lga: string;
+  schoolName: string;
+  year: number;
+  exam: string;
+  examNo: string;
+  reasonForContact: string;
+  email: string;
+  other: string;
+  phone: number;
+  resolved?: boolean;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
+
+export interface ComplaintsResponse {
+  data: Complaint[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    itemsPerPage: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  };
+}
 
 // Export hooks for usage in functional components
 export const {
@@ -362,4 +419,6 @@ export const {
   useUpdateApplicationStatusMutation,
   useReapproveApplicationMutation,
   useAdminLoginMutation,
+  useGetAllComplaintsQuery,
+  useResolveComplaintMutation,
 } = schoolsApi;
