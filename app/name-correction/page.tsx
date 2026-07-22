@@ -181,7 +181,7 @@ export default function NameCorrectionPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Exam Type Selector */}
             <div>
-              <label className="block text-sm font-medium text-black-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Exam Type
               </label>
               <select
@@ -191,7 +191,7 @@ export default function NameCorrectionPage() {
                   setResults([])
                   setHasSearched(false)
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-black"
               >
                 <option value="UBEAT">UBEAT</option>
                 <option value="BECE">BECE</option>
@@ -200,12 +200,12 @@ export default function NameCorrectionPage() {
 
             {/* Exam Number Input */}
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-black-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Exam Number
               </label>
               <div className="flex gap-2">
                 <div className="relative flex-1">
-                  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-black-400" />
+                  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-900" />
                   <input
                     type="text"
                     placeholder="e.g. oM/065/4832"
@@ -214,7 +214,7 @@ export default function NameCorrectionPage() {
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') handleSearch()
                     }}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-black"
                   />
                 </div>
                 <button
@@ -255,7 +255,7 @@ export default function NameCorrectionPage() {
               </div>
             ) : results.length === 0 ? (
               <div className="text-center py-16">
-                <p className="text-black-500 text-lg">
+                <p className="text-gray-500 text-lg">
                   No students found for &quot;{query}&quot; in {examType}.
                 </p>
               </div>
@@ -264,19 +264,19 @@ export default function NameCorrectionPage() {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-black-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Exam Number
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-black-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Student Name
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-black-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Exam Year
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-black-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         School
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-black-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Actions
                       </th>
                     </tr>
@@ -287,10 +287,10 @@ export default function NameCorrectionPage() {
 
                       return (
                         <tr key={student._id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-black-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             {student.examNo}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-black-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {isEditing ? (
                               <input
                                 type="text"
@@ -303,10 +303,10 @@ export default function NameCorrectionPage() {
                               student.name
                             )}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-black-500">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {student.examYear}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-black-500">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {student.school || 'N/A'}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
