@@ -1,12 +1,12 @@
 "use client";
 import { useState } from "react";
 import Image from "next/image";
-import { useAuth } from '@/contexts/AuthContext';
+import { usePlaygroundAuth } from '@/contexts/PlaygroundAuthContext';
 import Swal from 'sweetalert2';
 import { FaBookOpen, FaPencilAlt, FaUniversity } from "react-icons/fa";
 
 export default function NameCorrectionLoginForm() {
-  const { loginCustomerSupport, loading } = useAuth();
+  const { login, loading } = usePlaygroundAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -32,7 +32,7 @@ export default function NameCorrectionLoginForm() {
       });
       return;
     }
-    loginCustomerSupport(formData.email, formData.password);
+    login(formData.email, formData.password);
   };
 
   return (

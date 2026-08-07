@@ -1,8 +1,12 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import { FaSearch, FaEdit, FaSave, FaTimes, FaSpinner } from 'react-icons/fa'
+import { useState, useCallback, useEffect, useMemo } from 'react'
+import Link from 'next/link'
+import { FaSearch, FaEdit, FaSave, FaTimes, FaSpinner, FaSignOutAlt, FaUsersCog, FaChevronLeft, FaChevronRight } from 'react-icons/fa'
 import Swal from 'sweetalert2'
+import { usePlaygroundAuth } from '@/contexts/PlaygroundAuthContext'
+import NameCorrectionLoginForm from './components/NameCorrectionLoginForm'
+import { PlaygroundLog, getPlaygroundLogs } from '@/services/playgroundAuthService'
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
@@ -31,7 +35,58 @@ interface SearchResponse {
 
 type ExamType = 'UBEAT' | 'BECE'
 
+const LOGS_LIMIT = 20
+
+const LOG_COLUMN_ORDER = [
+  'examType',
+  'examNo',
+  'oldName',
+  'newName',
+  'oldExamNumber',
+  'newExamNumber',
+  'before',
+  'after',
+  'performedBy',
+  'updatedBy',
+]
+
+const HIDDEN_LOG_COLUMNS = new Set([
+  '__v',
+  '_id',
+  'timestamp',
+  'action',
+  'studentId',
+  'createdAt',
+  'actorEmail',
+  'field',
+  'schoolCode',
+  'studentName',
+])
+
+function formatLogHeader(key: string): string {
+  return key
+    .replace(/([A-Z])/g, ' $1')
+    .replace(/^./, (c) => c.toUpperCase())
+    .trim()
+}
+
+function formatLogValue(value: unknown): string {
+  if (value === null || value === undefined || value === '') return '-'
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(value)) {
+    const date = new Date(value)
+    if (!isNaN(date.getTime())) return date.toLocaleString()
+  }
+  if (Array.isArray(value)) return value.map((v) => formatLogValue(v)).join(', ')
+  if (typeof value === 'object') {
+    return Object.entries(value as Record<string, unknown>)
+      .map(([k, v]) => `${formatLogHeader(k)}: ${formatLogValue(v)}`)
+      .join(', ')
+  }
+  return String(value)
+}
+
 export default function NameCorrectionPage() {
+  const { isAuthenticated, isTokenLoaded, isAdmin, user, token, logout } = usePlaygroundAuth()
   const [examType, setExamType] = useState<ExamType>('UBEAT')
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<Student[]>([])
@@ -41,6 +96,49 @@ export default function NameCorrectionPage() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
   const [saving, setSaving] = useState(false)
+
+  const [logs, setLogs] = useState<PlaygroundLog[]>([])
+  const [logsTotal, setLogsTotal] = useState(0)
+  const [logsPage, setLogsPage] = useState(1)
+  const [logsLoading, setLogsLoading] = useState(false)
+  const [logsError, setLogsError] = useState<string | null>(null)
+
+  const loadLogs = useCallback(async () => {
+    if (!token) return
+    setLogsLoading(true)
+    setLogsError(null)
+    try {
+      const data = await getPlaygroundLogs(token, logsPage, LOGS_LIMIT)
+      setLogs(data.logs || [])
+      setLogsTotal(data.total || 0)
+    } catch (err) {
+      setLogsError(err instanceof Error ? err.message : 'Failed to load logs')
+    } finally {
+      setLogsLoading(false)
+    }
+  }, [token, logsPage])
+
+  useEffect(() => {
+    if (token) {
+      loadLogs()
+    }
+  }, [token, loadLogs])
+
+  const logColumns = useMemo(() => {
+    const keys = new Set<string>()
+    logs.forEach((log) => {
+      Object.keys(log).forEach((key) => {
+        if (!HIDDEN_LOG_COLUMNS.has(key)) keys.add(key)
+      })
+    })
+    const ordered = LOG_COLUMN_ORDER.filter((key) => keys.has(key))
+    const rest = Array.from(keys)
+      .filter((key) => !ordered.includes(key))
+      .sort()
+    return [...ordered, ...rest]
+  }, [logs])
+
+  const logsTotalPages = Math.max(1, Math.ceil(logsTotal / LOGS_LIMIT))
 
   const handleSearch = useCallback(async () => {
     if (!query.trim()) {
@@ -69,6 +167,7 @@ export default function NameCorrectionPage() {
         headers: {
           'Content-Type': 'application/json',
           'ngrok-skip-browser-warning': 'true',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         cache: 'no-store',
       })
@@ -86,7 +185,7 @@ export default function NameCorrectionPage() {
     } finally {
       setLoading(false)
     }
-  }, [examType, query])
+  }, [examType, query, token])
 
   const handleEdit = (student: Student) => {
     setEditingId(student._id)
@@ -111,7 +210,6 @@ export default function NameCorrectionPage() {
     setSaving(true)
 
     try {
-      const token = localStorage.getItem('admin_token')
       const endpoint = `/results-playground/update-name`
 
       const res = await fetch(`${BASE_URL}${endpoint}`, {
@@ -163,15 +261,52 @@ export default function NameCorrectionPage() {
     }
   }
 
+  if (!isTokenLoaded) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-700"></div>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return <NameCorrectionLoginForm />
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-green-700 text-white shadow-md">
-        <div className="max-w-6xl mx-auto px-4 py-6">
-          <h1 className="text-2xl font-bold">Student Name Correction</h1>
-          <p className="text-green-100 text-sm mt-1">
-            Search for a student by exam number and correct their name.
-          </p>
+        <div className="max-w-6xl mx-auto px-4 py-6 flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h1 className="text-2xl font-bold">Student Name Correction</h1>
+            <p className="text-green-100 text-sm mt-1">
+              Search for a student by exam number and correct their name.
+            </p>
+          </div>
+          <div className="flex items-center gap-4">
+            {user && (
+              <span className="text-sm text-green-100">
+                {user.name} <span className="opacity-70">({user.role})</span>
+              </span>
+            )}
+            {isAdmin && (
+              <Link
+                href="/name-correction/users"
+                className="flex items-center gap-2 text-sm bg-green-800 hover:bg-green-900 px-3 py-2 rounded-lg transition-colors"
+              >
+                <FaUsersCog />
+                Manage Users
+              </Link>
+            )}
+            <button
+              onClick={logout}
+              className="flex items-center gap-2 text-sm bg-green-800 hover:bg-green-900 px-3 py-2 rounded-lg transition-colors"
+            >
+              <FaSignOutAlt />
+              Logout
+            </button>
+          </div>
         </div>
       </header>
 
@@ -352,6 +487,83 @@ export default function NameCorrectionPage() {
             )}
           </div>
         )}
+
+        {/* Change Logs */}
+        <div className="mt-10">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Change Logs</h2>
+
+          {logsError && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+              <p className="text-red-800">{logsError}</p>
+            </div>
+          )}
+
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            {logsLoading ? (
+              <div className="flex justify-center items-center py-16">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-700"></div>
+              </div>
+            ) : logs.length === 0 ? (
+              <div className="text-center py-16">
+                <p className="text-gray-500 text-lg">No logs found.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      {logColumns.map((col) => (
+                        <th
+                          key={col}
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
+                        >
+                          {formatLogHeader(col)}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {logs.map((log) => (
+                      <tr key={log._id} className="hover:bg-gray-50">
+                        {logColumns.map((col) => (
+                          <td key={col} className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                            {formatLogValue(log[col])}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {!logsLoading && logs.length > 0 && (
+            <div className="flex items-center justify-between mt-4">
+              <p className="text-sm text-gray-500">
+                Page {logsPage} of {logsTotalPages} &middot; {logsTotal} total {logsTotal === 1 ? 'entry' : 'entries'}
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setLogsPage((p) => Math.max(1, p - 1))}
+                  disabled={logsPage <= 1}
+                  className="flex items-center gap-1 px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <FaChevronLeft />
+                  Prev
+                </button>
+                <button
+                  onClick={() => setLogsPage((p) => Math.min(logsTotalPages, p + 1))}
+                  disabled={logsPage >= logsTotalPages}
+                  className="flex items-center gap-1 px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                  <FaChevronRight />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </main>
     </div>
   )

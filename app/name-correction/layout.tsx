@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import type { Metadata } from "next";
 import "../globals.css";
+import { PlaygroundAuthProvider } from "@/contexts/PlaygroundAuthContext";
 
 export const metadata: Metadata = {
   title: "Name Correction - Ministry of Primary and Secondary Education",
@@ -13,5 +14,9 @@ export default function NameCorrectionLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <div className="name-correction-layout">{children}</div>;
+  return (
+    <div className="name-correction-layout">
+      <PlaygroundAuthProvider>{children}</PlaygroundAuthProvider>
+    </div>
+  );
 }
